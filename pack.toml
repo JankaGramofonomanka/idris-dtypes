@@ -1,0 +1,10 @@
+[custom.all.dtypes]
+type = "local"
+path = "."
+ipkg = "dtypes.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.dtypes-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
