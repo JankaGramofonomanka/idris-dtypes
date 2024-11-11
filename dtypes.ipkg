@@ -20,7 +20,9 @@ modules = Data.DEq
         , Data.DFoldable
         , Data.DFunctor
         , Data.DList
+        , Data.DMonoid
         , Data.DOrd
+        , Data.DSemigroup
         , Data.DShow
         , Data.DSum
         , Data.Some
