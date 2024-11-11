@@ -1,7 +1,7 @@
 ||| A module defining the `DOrd` interface
 module Data.DOrd
 
-import Data.DEq
+import public Data.DEq
 
 ||| An ordering of single-parameter dependent types
 |||
