@@ -17,6 +17,7 @@ brief = "dependent variants of common idris/haskell types and interfaces"
 
 -- modules to install
 modules = Data.DEq
+        , Data.DFoldable
         , Data.DFunctor
         , Data.DList
         , Data.DOrd

@@ -1,6 +1,7 @@
 ||| A module defining the dependent list and its interface
 module Data.DList
 
+import Data.DFoldable
 import Data.DFunctor
 
 ||| A dependent list
@@ -69,15 +70,14 @@ dtraverse' f (ax :: axs) = do
 
 
 -- TODO what about dependent accumulator?
-||| `foldr` version for dependent lists
 export
-dfoldr : ({0 x : t} -> elem x -> acc -> acc) -> acc -> DList elem ts -> acc
-dfoldr f acc Nil = acc
-dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
+implementation DFoldable (flip DList xs) where
+  dfoldr f acc Nil = acc
+  dfoldr f acc (x :: xs) = f x $ dfoldr {f = flip DList ?} f acc xs
 
 ||| `foldl` version for dependent lists
 export
-dfoldl : ({0 x : t} -> acc -> elem x -> acc) -> acc -> DList elem ts -> acc
+dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
 dfoldl f acc Nil = acc
 dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
 
