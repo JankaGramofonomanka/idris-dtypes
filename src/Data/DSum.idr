@@ -1,8 +1,11 @@
 ||| A module defining a dependent sum
 module Data.DSum
 
-import Data.DOrd
+import Data.String
+
 import Data.DEq
+import Data.DOrd
+import Data.DShow
 import Data.Some
 
 export infixr 1 :=>
@@ -28,12 +31,19 @@ toSome : DSum tag f -> Some (\x => (tag x, f x))
 toSome (x :=> y) = MkSome (x, y)
 
 export
-implementation (geqTag : DEq tag) => (geqf : DEq f) => Eq (DSum tag f) where
-  (x :=> y) == (x' :=> y') = deq' @{geqTag} x x' && deq' @{geqf} y y'
+implementation (tagimpl : DEq tag) => (fimpl : DEq f) => Eq (DSum tag f) where
+  (x :=> y) == (x' :=> y') = deq' @{tagimpl} x x' && deq' @{fimpl} y y'
 
 export
-implementation (geqTag : DOrd tag) => (geqf : DOrd f) => Ord (DSum tag f) where
-  compare (x :=> y) (x' :=> y') = case dcompare @{geqTag} x x' of
+implementation (tagimpl : DOrd tag) => (fimpl : DOrd f) => Ord (DSum tag f) where
+  compare (x :=> y) (x' :=> y') = case dcompare @{tagimpl} x x' of
     DLT => LT
     DGT => GT
-    DEQ => dcompare' @{geqf} y y'
+    DEQ => dcompare' @{fimpl} y y'
+
+export
+implementation (tagimpl : DShow tag) => (fimpl : DShow f) => Show (DSum tag f) where
+  -- TODO use `showPrec` to only print parentheses when necessary
+  show (x :=> y) = let
+    noParens = unwords [dshow x @{tagimpl}, ":=>", dshow y @{fimpl}]
+    in showParens True noParens

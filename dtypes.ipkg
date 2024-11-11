@@ -21,6 +21,7 @@ modules = Data.DEq
         , Data.DFunctor
         , Data.DList
         , Data.DOrd
+        , Data.DShow
         , Data.DSum
         , Data.Some
 

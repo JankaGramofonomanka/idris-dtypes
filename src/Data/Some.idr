@@ -3,6 +3,7 @@ module Data.Some
 
 import Data.DEq
 import Data.DOrd
+import Data.DShow
 
 ||| Wraps a dependent type, so that its parameter is hidden.
 ||| Values of dependent types, wrapped this way, have the same type
@@ -14,18 +15,20 @@ data Some : (f : t -> Type) -> Type where
   ||| @ x the wrapped value
   MkSome : {0 a : t} -> (x : f a) -> Some f
 
-
-
 export
-implementation [viaGEq] (impl : DEq f) => Eq (Some f) where
+implementation [viaDEq] (impl : DEq f) => Eq (Some f) where
   MkSome x == MkSome y = deq' x y @{impl}
 
 export
-implementation [viaGCompare] (impl : DOrd f) => Ord (Some f) using viaGEq where
+implementation [viaDCompare] (impl : DOrd f) => Ord (Some f) using viaDEq where
   compare (MkSome x) (MkSome y) = case dcompare x y @{impl} of
     DLT => LT
     DGT => GT
     DEQ => EQ
+
+export
+implementation [viaDShow] (impl : DShow f) => Show (Some f) where
+  showPrec prec (MkSome fx) = showCon prec "MkSome" (dshowArg fx @{impl})
 
 ||| Apply a dependency-removing function to the value wrapped in `Some` and
 ||| drop the wrapper
