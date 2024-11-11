@@ -1,9 +1,9 @@
 ||| A module defining the `Some` type
 module Data.Some
 
-import Data.DEq
-import Data.DOrd
-import Data.DShow
+import public Data.DEq
+import public Data.DOrd
+import public Data.DShow
 
 ||| Wraps a dependent type, so that its parameter is hidden.
 ||| Values of dependent types, wrapped this way, have the same type

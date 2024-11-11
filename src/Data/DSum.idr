@@ -3,10 +3,10 @@ module Data.DSum
 
 import Data.String
 
-import Data.DEq
-import Data.DOrd
-import Data.DShow
-import Data.Some
+import public Data.DEq
+import public Data.DOrd
+import public Data.DShow
+import public Data.Some
 
 export infixr 1 :=>
 ||| A dependent sum

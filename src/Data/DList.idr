@@ -1,8 +1,8 @@
 ||| A module defining the dependent list and its interface
 module Data.DList
 
-import Data.DFoldable
-import Data.DFunctor
+import public Data.DFoldable
+import public Data.DFunctor
 
 ||| A dependent list
 ||| @ f  the constructor of the types of elements
