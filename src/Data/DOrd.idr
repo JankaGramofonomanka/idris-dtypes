@@ -3,7 +3,7 @@ module Data.DOrd
 
 import Data.DEq
 
-||| An ordering of dependent types
+||| An ordering of single-parameter dependent types
 |||
 ||| Modeled after the `DOrdering` type from Haskells "some" package
 public export
