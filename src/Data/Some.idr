@@ -16,18 +16,18 @@ data Some : (f : t -> Type) -> Type where
   MkSome : {0 a : t} -> (x : f a) -> Some f
 
 export
-implementation [viaDEq] (impl : DEq f) => Eq (Some f) where
+implementation (impl : DEq f) => Eq (Some f) where
   MkSome x == MkSome y = deq' x y @{impl}
 
 export
-implementation [viaDCompare] (impl : DOrd f) => Ord (Some f) using viaDEq where
+implementation (impl : DOrd f) => Ord (Some f) where
   compare (MkSome x) (MkSome y) = case dcompare x y @{impl} of
     DLT => LT
     DGT => GT
     DEQ => EQ
 
 export
-implementation [viaDShow] (impl : DShow f) => Show (Some f) where
+implementation (impl : DShow f) => Show (Some f) where
   showPrec prec (MkSome fx) = showCon prec "MkSome" (dshowArg fx @{impl})
 
 ||| Apply a dependency-removing function to the value wrapped in `Some` and
