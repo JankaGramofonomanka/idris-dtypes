@@ -3,6 +3,7 @@ module Data.DList
 
 import Data.DFoldable
 import Data.DFunctor
+import Data.DTraversable
 
 ||| A dependent list
 ||| @ f  the constructor of the types of elements
@@ -33,21 +34,13 @@ length (x :: xs) = S (length xs)
 ||| Map each element of a dependent list to a computation, evaluate those
 ||| computations and combine the results.
 export
-dtraverse : Monad f
-        => {0 t : Type}
-        -> {0 a, b : t -> Type}
-        -> {0 xs : List t}
+implementation DTraversable (flip DList xs) where
+  dtraverse f Nil = pure Nil
+  dtraverse f (ax :: axs) = do
+    bx <- f ax
+    bxs <- dtraverse {tr = flip DList ?} f axs
 
-        -> ({0 x : t} -> a x -> f (b x))
-        -> DList a xs
-        -> f (DList b xs)
-
-dtraverse f Nil = pure Nil
-dtraverse f (ax :: axs) = do
-  bx <- f ax
-  bxs <- dtraverse f axs
-
-  pure (bx :: bxs)
+    pure (bx :: bxs)
 
 -- TODO: rewrite in terms of `Applicative`
 ||| Map each element of a list to a computation whose result type is dependent
