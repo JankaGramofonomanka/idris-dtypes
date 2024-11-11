@@ -16,7 +16,11 @@ brief = "dependent variants of common idris/haskell types and interfaces"
 -- depends =
 
 -- modules to install
-modules = Dtypes
+modules = Data.DList
+        , Data.DSum
+        , Data.GCompare
+        , Data.GEq
+        , Data.Some
 
 -- main file (i.e. file to load at REPL)
 -- main =
