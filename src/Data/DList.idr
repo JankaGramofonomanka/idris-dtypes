@@ -69,7 +69,6 @@ dtraverse' f (ax :: axs) = do
   pure (bx :: bxs)
 
 
--- TODO what about dependent accumulator?
 export
 implementation DFoldable (flip DList xs) where
   dfoldr f acc Nil = acc
