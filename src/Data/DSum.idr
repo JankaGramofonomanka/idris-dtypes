@@ -1,8 +1,8 @@
 ||| A module defining a dependent sum
 module Data.DSum
 
-import Data.GCompare
-import Data.GEq
+import Data.DOrd
+import Data.DEq
 import Data.Some
 
 export infixr 1 :=>
@@ -28,12 +28,12 @@ toSome : DSum tag f -> Some (\x => (tag x, f x))
 toSome (x :=> y) = MkSome (x, y)
 
 export
-implementation (geqTag : GEq tag) => (geqf : GEq f) => Eq (DSum tag f) where
-  (x :=> y) == (x' :=> y') = geq' @{geqTag} x x' && geq' @{geqf} y y'
+implementation (geqTag : DEq tag) => (geqf : DEq f) => Eq (DSum tag f) where
+  (x :=> y) == (x' :=> y') = deq' @{geqTag} x x' && deq' @{geqf} y y'
 
 export
-implementation (geqTag : GCompare tag) => (geqf : GCompare f) => Ord (DSum tag f) where
-  compare (x :=> y) (x' :=> y') = case gcompare @{geqTag} x x' of
-    GLT => LT
-    GGT => GT
-    GEQ => gcompare' @{geqf} y y'
+implementation (geqTag : DOrd tag) => (geqf : DOrd f) => Ord (DSum tag f) where
+  compare (x :=> y) (x' :=> y') = case dcompare @{geqTag} x x' of
+    DLT => LT
+    DGT => GT
+    DEQ => dcompare' @{geqf} y y'

@@ -1,8 +1,8 @@
 ||| A module defining the `Some` type
 module Data.Some
 
-import Data.GEq
-import Data.GCompare
+import Data.DEq
+import Data.DOrd
 
 ||| Wraps a dependent type, so that its parameter is hidden.
 ||| Values of dependent types, wrapped this way, have the same type
@@ -17,15 +17,15 @@ data Some : (f : t -> Type) -> Type where
 
 
 export
-implementation [viaGEq] (impl : GEq f) => Eq (Some f) where
-  MkSome x == MkSome y = geq' x y @{impl}
+implementation [viaGEq] (impl : DEq f) => Eq (Some f) where
+  MkSome x == MkSome y = deq' x y @{impl}
 
 export
-implementation [viaGCompare] (impl : GCompare f) => Ord (Some f) using viaGEq where
-  compare (MkSome x) (MkSome y) = case gcompare x y @{impl} of
-    GLT => LT
-    GGT => GT
-    GEQ => EQ
+implementation [viaGCompare] (impl : DOrd f) => Ord (Some f) using viaGEq where
+  compare (MkSome x) (MkSome y) = case dcompare x y @{impl} of
+    DLT => LT
+    DGT => GT
+    DEQ => EQ
 
 ||| Apply a dependency-removing function to the value wrapped in `Some` and
 ||| drop the wrapper

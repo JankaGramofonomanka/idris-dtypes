@@ -1,5 +1,5 @@
-||| A module defining the `GEq` interface
-module Data.GEq
+||| A module defining the `DEq` interface
+module Data.DEq
 
 public export
 toBool : Maybe thm -> Bool
@@ -12,20 +12,20 @@ toBool Nothing = False
 |||
 ||| Modeled after the `GEq` typeclass from Haskells "some" package
 public export
-interface GEq (0 f : t -> Type) where
+interface DEq (0 f : t -> Type) where
   ||| If the operands are equal, returns a proof, that their type parameters
   ||| are equal
-  geq : f a -> f b -> Maybe (a = b)
+  deq : f a -> f b -> Maybe (a = b)
 
 
 ||| Compare the operands and ignore the equality proof
 export
-geq', (==) : (impl : GEq f) => f a -> f b -> Bool
-geq' fa fb = toBool (geq fa fb @{impl})
-(==) = geq' @{impl}
+deq', (==) : (impl : DEq f) => f a -> f b -> Bool
+deq' fa fb = toBool (deq fa fb @{impl})
+(==) = deq' @{impl}
 
 ||| Decide the inequality of the operands
 export
-ngeq', (/=) : (impl : GEq f) => f a -> f b -> Bool
-ngeq' fa fb = not (geq' fa fb @{impl})
+ngeq', (/=) : (impl : DEq f) => f a -> f b -> Bool
+ngeq' fa fb = not (deq' fa fb @{impl})
 (/=) = ngeq' @{impl}
