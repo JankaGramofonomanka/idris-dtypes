@@ -23,7 +23,9 @@ modules = Data.DEq.Operators
         , Data.DFunctor
         , Data.DList.Impl
         , Data.DList
+        , Data.DMonoid
         , Data.DOrd
+        , Data.DSemigroup
         , Data.DShow
         , Data.DSum
         , Data.Some
