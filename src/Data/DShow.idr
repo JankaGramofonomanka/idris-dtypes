@@ -1,9 +1,5 @@
 module Data.DShow
 
-public export
-ShowS : Type
-ShowS = String -> String
-
 ||| Equivalent of `Show` for single-parameter dependent types
 |||
 ||| Inspired by the `GShow` typeclass from Haskells "some" package.
