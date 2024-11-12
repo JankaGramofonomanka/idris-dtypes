@@ -21,6 +21,7 @@ modules = Data.DEq.Operators
         , Data.DFoldable
         , Data.DFunctor.Operators
         , Data.DFunctor
+        , Data.DList.Impl
         , Data.DList
         , Data.DOrd
         , Data.DShow

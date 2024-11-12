@@ -1,9 +1,6 @@
 ||| A module defining the dependent list and its interface
 module Data.DList
 
-import public Data.DFoldable
-import public Data.DFunctor
-
 ||| A dependent list
 ||| @ f  the constructor of the types of elements
 ||| @ ts the partameters from which the types of the lists elements are
@@ -69,10 +66,11 @@ dtraverse' f (ax :: axs) = do
   pure (bx :: bxs)
 
 
+||| `foldr` version for dependent lists
 export
-implementation DFoldable (flip DList xs) where
-  dfoldr f acc Nil = acc
-  dfoldr f acc (x :: xs) = f x $ dfoldr {f = flip DList ?} f acc xs
+dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
+dfoldr f acc Nil = acc
+dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
 
 ||| `foldl` version for dependent lists
 export
@@ -80,10 +78,11 @@ dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
 dfoldl f acc Nil = acc
 dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
 
+||| Apply a function to every element of a dependent list
 export
-implementation DFunctor (flip DList xs) where
-  dmap f Nil = Nil
-  dmap f (x :: xs) = f x :: dmap {f = flip DList ?} f xs
+dmap : ({0 x : t} -> a x -> b x) -> DList a xs -> DList b xs
+dmap f Nil = Nil
+dmap f (ax :: axs) = f ax :: dmap f axs
 
 ||| Turn a dependent list into a non-dependent one by applying a
 ||| dependency-removing function to its elements.
