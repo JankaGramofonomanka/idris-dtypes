@@ -38,19 +38,26 @@ export
 mcong' : {0 f : a -> b} -> {0 x, y : a} -> (prf : x =? y) -> f x =? f y
 mcong' {f} prf = mcong f prf
 
+||| When the condition holds, return the (optional) equality proof
+||| @ meq  the (optional) equality proof
+||| @ cond the condition
+export
+when : (cond : Bool) -> (meq : a =? b) -> a =? b
+when False _  = Nothing
+when True meq = meq
+
 ||| Returns the (optional) equality, but only when the condition holds
 ||| @ meq  the (optional) equality proof
 ||| @ cond the condition
 export
 butOnlyWhen : (meq : a =? b) -> (cond : Bool) -> a =? b
-butOnlyWhen _ False = Nothing
-butOnlyWhen meq True = meq
+butOnlyWhen = flip when
 
 export
 and
    : {0 a, b   : t}
   -> {0 aa, bb : tt}
-  -> {f        : t -> tt -> ttt}
+  -> {0 f      : t -> tt -> ttt}
   -> (lhs      : a      =? b)
   -> (rhs      : aa     =? bb)
   ->             f a aa =? f b bb
