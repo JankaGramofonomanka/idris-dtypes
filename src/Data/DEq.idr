@@ -46,6 +46,18 @@ butOnlyWhen : (meq : a =? b) -> (cond : Bool) -> a =? b
 butOnlyWhen _ False = Nothing
 butOnlyWhen meq True = meq
 
+export
+and
+   : {0 a, b   : t}
+  -> {0 aa, bb : tt}
+  -> {f        : t -> tt -> ttt}
+  -> (lhs      : a      =? b)
+  -> (rhs      : aa     =? bb)
+  ->             f a aa =? f b bb
+and _ Nothing = Nothing
+and Nothing _ = Nothing
+and (Just Refl) (Just Refl) = Just Refl
+
 -------------------------------------------------------------------------------
 -- PEq, DEq interfaces
 -------------------------------------------------------------------------------
@@ -126,17 +138,9 @@ implementation PEq String where
 export
 implementation PEq a => PEq (List a) where
   peq Nil Nil = Just Refl
-  peq (x :: xs) (y :: ys) = case peq x y of
-    Nothing => Nothing
-    Just prf => case peq xs ys of
-      Nothing => Nothing
-      Just prf' => rewrite prf
-                in rewrite prf'
-                in Just Refl
+  peq (x :: xs) (y :: ys) = (peq x y `and` peq xs ys) {f = (::)}
   peq _ _ = Nothing
 
 export
 implementation PEq a => PEq b => PEq (a, b) where
-  peq (a1, b1) (a2, b2) = case peq a1 a2 of
-    Nothing => Nothing
-    Just Refl => mcong (a1,) (peq b1 b2)
+  peq (a1, b1) (a2, b2) = (peq a1 a2 `and` peq b1 b2) {f = (,)}
