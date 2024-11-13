@@ -5,7 +5,7 @@ import public Data.DEq
 
 ||| An ordering of single-parameter dependent types
 |||
-||| Modeled after the `DOrdering` type from Haskells "some" package
+||| Modeled after the `GOrdering` type from Haskells "some" package
 public export
 data DOrdering : t -> t -> Type where
   DLT : DOrdering a b
