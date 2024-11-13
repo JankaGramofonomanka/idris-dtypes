@@ -56,7 +56,8 @@ butOnlyWhen meq True = meq
 ||| Note, this is not the same as `EqP` from the "some" package from Hackage
 public export
 interface PEq a where
-  ||| A proof that the operands are equal, or `Nothing` if they aren't
+  ||| Returns a proof that the operands are equal when they are,
+  ||| otherwise, returns `Nothing`
   peq : (x, y : a) -> x =? y
 
 ||| Constructors of types that allow for deciding the equality between values
@@ -64,6 +65,9 @@ interface PEq a where
 ||| different parameters
 |||
 ||| Modeled after the `GEq` typeclass from Haskells "some" package
+|||
+||| @ f the type constructor
+||| @ t the parameter type
 public export
 interface DEq (0 f : t -> Type) where
   ||| If the operands are equal, returns a proof, that their type parameters
