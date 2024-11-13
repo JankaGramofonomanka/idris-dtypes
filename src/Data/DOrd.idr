@@ -12,6 +12,31 @@ data DOrdering : t -> t -> Type where
   DEQ : DOrdering a a
   DGT : DOrdering a b
 
+export
+||| Like `ordcong` but the function is implicit
+ordcong'
+   : {0 f : a -> b}
+  -> {0 x, y : a}
+  -> DOrdering x y
+  -> DOrdering (f x) (f y)
+ordcong' DLT = DLT
+ordcong' DGT = DGT
+ordcong' DEQ = DEQ
+
+||| Takes a function and an ordering of the two values and returns an ordering
+||| of the results of that function applied to these values.
+|||
+||| @ f   the function
+||| @ x y the values
+||| @ ord the ordering
+export
+ordcong
+   : (0 f : a -> b)
+  -> {0 x, y : a}
+  -> (ord : DOrdering x y)
+  -> DOrdering (f x) (f y)
+ordcong f = ordcong' {f}
+
 ||| Similar to `Ord` but the operands can be equal only when they actually are,
 ||| that is, when the statement `p = q` is true (there is a `Refl : (p = q)`),
 ||| where `p` and `q` are the operands
@@ -27,10 +52,15 @@ interface POrd a where
 ||| in the case when their types are constructed from different parameters
 |||
 ||| Modeled after the `GCompare` typeclass from Haskells "some" package
+|||
+||| @ f the type constructor
+||| @ t the parameter type
 public export
 interface (impl : DEq f) => DOrd (0 f : t -> Type) where
+  ||| Compare the operands
   dcompare : f a -> f b -> DOrdering a b
 
+||| Compare the operands and ignore the equality proof (if the result is `DEQ`)
 export
 dcompare' : (impl : DOrd f) => f a -> f b -> Ordering
 dcompare' fa fb = case dcompare fa fb @{impl} of
@@ -56,13 +86,10 @@ implementation POrd Nat where
   pcompare x y = pcompare x y @{unsafeViaEq}
 
   -- A "kosher" definition:
-  -- pcompare Z Z = DEQ
-  -- pcompare (S n) (S m) = case pcompare n m of
-  --     DLT => DLT
-  --     DGT => DGT
-  --     DEQ => DEQ
-  -- pcompare Z (S m) = DLT
-  -- pcompare (S n) Z = DGT
+  -- pcompare Z     Z     = DEQ
+  -- pcompare (S n) (S m) = ordcong S (pcompare n m)
+  -- pcompare Z     (S m) = DLT
+  -- pcompare (S n) Z     = DGT
 
 export
 implementation POrd Int where
@@ -86,11 +113,7 @@ implementation POrd a => POrd (List a) where
   pcompare (x :: xs) (y :: ys) = case pcompare x y of
     DLT => DLT
     DGT => DGT
-    -- TODO write an analogy to `mcong`
-    DEQ => case pcompare xs ys of
-      DLT => DLT
-      DGT => DGT
-      DEQ => DEQ
+    DEQ => ordcong (x ::) (pcompare xs ys)
   pcompare Nil (y :: ys) = DLT
   pcompare (x :: xs) Nil = DGT
 
@@ -99,8 +122,4 @@ implementation POrd a => POrd b => POrd (a, b) where
   pcompare (a1, b1) (a2, b2) = case pcompare a1 a2 of
     DLT => DLT
     DGT => DGT
-    -- TODO write an analogy to `mcong`
-    DEQ => case pcompare b1 b2 of
-      DLT => DLT
-      DGT => DGT
-      DEQ => DEQ
+    DEQ => ordcong (a1,) (pcompare b1 b2)
