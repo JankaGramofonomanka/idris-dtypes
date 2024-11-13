@@ -37,6 +37,29 @@ ordcong
   -> DOrdering (f x) (f y)
 ordcong f = ordcong' {f}
 
+||| ``ordL `precedes` ordR`` means that, in the resulting ordering, `ordL`
+||| precedes' `ordR`, that is `ordR` is considered only if `ordL` is `DEQ`
+export
+precedes
+   : {0 a, b   : t}
+  -> {0 aa, bb : tt}
+  -> {0 f        : t -> tt -> ttt}
+  -> (lhs      : DOrdering a        b)
+  -> (rhs      : DOrdering aa       bb)
+  ->             DOrdering (f a aa) (f b bb)
+precedes DLT _   = DLT
+precedes DGT _   = DGT
+precedes DEQ DLT = DLT
+precedes DEQ DGT = DGT
+precedes DEQ DEQ = DEQ
+
+||| Like `precedes`, except the preceding ordering is a regular `Ordering`
+export
+precedes' : Ordering -> DOrdering a b -> DOrdering a b
+precedes' LT dord = DLT
+precedes' EQ dord = dord
+precedes' GT dord = DGT
+
 ||| Similar to `Ord` but the operands can be equal only when they actually are,
 ||| that is, when the statement `p = q` is true (there is a `Refl : (p = q)`),
 ||| where `p` and `q` are the operands
@@ -110,16 +133,12 @@ implementation POrd String where
 export
 implementation POrd a => POrd (List a) where
   pcompare Nil Nil = DEQ
-  pcompare (x :: xs) (y :: ys) = case pcompare x y of
-    DLT => DLT
-    DGT => DGT
-    DEQ => ordcong (x ::) (pcompare xs ys)
+  pcompare (x :: xs) (y :: ys)
+    = (pcompare x y `precedes` pcompare xs ys) {f = (::)}
   pcompare Nil (y :: ys) = DLT
   pcompare (x :: xs) Nil = DGT
 
 export
 implementation POrd a => POrd b => POrd (a, b) where
-  pcompare (a1, b1) (a2, b2) = case pcompare a1 a2 of
-    DLT => DLT
-    DGT => DGT
-    DEQ => ordcong (a1,) (pcompare b1 b2)
+  pcompare (a1, b1) (a2, b2)
+    = (pcompare a1 a2 `precedes` pcompare b1 b2) {f = (,)}
