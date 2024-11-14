@@ -1,6 +1,9 @@
 ||| A module defining the dependent list and its interface
 module Data.DList
 
+import Data.DSum
+import Data.Some
+
 ||| A dependent list
 ||| @ f  the constructor of the types of elements
 ||| @ ts the partameters from which the types of the lists elements are
@@ -143,28 +146,136 @@ split {xs = x :: xs''} (fx :: fxs''') = let (fxs'', fxs') = split (fxs''') in (f
 
 ||| Unzip a list with a function that returns a dependent pair
 export
-dunzipWith : {0 f : b -> Type} -> (a -> (y ** f y)) -> List a -> (ys ** DList f ys)
-dunzipWith g Nil = (Nil ** Nil)
-dunzipWith g (x :: xs) = let
+unzipParamsWith
+   : {0 f : b -> Type}
+  -> (a -> (y ** f y))
+  -> List a
+  -> (ys ** DList f ys)
+unzipParamsWith g Nil = (Nil ** Nil)
+unzipParamsWith g (x :: xs) = let
     (y ** fy) = g x
-    (ys ** fys) = dunzipWith g xs
+    (ys ** fys) = unzipParamsWith g xs
   in (y :: ys ** fy :: fys)
 
 ||| Unzip a list of dependent pairs
+||| Returns a list of parameters and a list of the dependent elements
 export
-dunzip : {0 f : a -> Type} -> (dpairs : List (x ** f x)) -> (xs ** DList f xs)
-dunzip = dunzipWith id
+unzipParams
+   : {0 f : a -> Type}
+  -> (dpairs : List (x ** f x))
+  -> (xs ** DList f xs)
+unzipParams = unzipParamsWith id
 
 ||| Zip a dependent list with its params, according to a zipping function
 export
-dzipWith : {0 f : b -> Type} -> ((y : b) -> f y -> a) -> (ys ** DList f ys) -> List a
-dzipWith g (Nil ** Nil) = Nil
-dzipWith g (y :: ys ** fy :: fys) = let
+zipParamsWith
+   : {0 f : b -> Type}
+  -> ((y : b) -> f y -> a)
+  -> (ys ** DList f ys)
+  -> List a
+zipParamsWith g (Nil ** Nil) = Nil
+zipParamsWith g (y :: ys ** fy :: fys) = let
     x = g y fy
-    xs = dzipWith g (ys ** fys)
+    xs = zipParamsWith g (ys ** fys)
   in (x :: xs)
 
 ||| Zip a dependent list with its params
 export
-dzip : {0 f : b -> Type} -> (ys ** DList f ys) -> List (y ** f y)
-dzip dpairs = dzipWith (\y => \fy => (y ** fy)) dpairs
+zipParams : {0 f : b -> Type} -> (ys ** DList f ys) -> List (y ** f y)
+zipParams dpairs = zipParamsWith (\y => \fy => (y ** fy)) dpairs
+
+||| Unzip a list of dependent sums
+export
+unzipDSums : List (DSum f g) -> (Some (DList f), Some (DList g))
+unzipDSums Nil = (MkSome Nil, MkSome Nil)
+unzipDSums ((fx :=> gx) :: dsums) = let
+  (MkSome fxs, MkSome gxs) = unzipDSums dsums
+  in (MkSome (fx :: fxs), MkSome (gx :: gxs))
+
+||| Zip two dependent lists into a list of dependent sums
+export
+zipToDSums : DList f xs -> DList g xs -> List (DSum f g)
+zipToDSums Nil Nil = Nil
+zipToDSums (fx :: fxs) (gx :: gxs) = (fx :=> gx) :: zipToDSums fxs gxs
+
+||| Zip a list of dependent pairs with an un-zipping function
+export
+unzipDPairsWith
+   : {0 f, g, h : t -> Type}
+  -> ({0 x : t} -> f x -> (g x, h x))
+  -> (dpairs : List (x : t ** (f x)))
+  -> (DList g (map DPair.fst dpairs), DList h (map DPair.fst dpairs))
+unzipDPairsWith func Nil = (Nil, Nil)
+unzipDPairsWith func ((x ** fx) :: dpairs) = let
+  (gx, hx) = func fx
+  (gxs, hxs) = unzipDPairsWith func dpairs
+  in (gx :: gxs, hx :: hxs)
+
+||| Zip a list of dependent pairs
+||| (of pairs of elements dependent on a common parameter)
+export
+unzipDPairs
+   : (dpairs : List (x : t ** (f x, g x)))
+  -> (DList f (map DPair.fst dpairs), DList g (map DPair.fst dpairs))
+unzipDPairs Nil = (Nil, Nil)
+unzipDPairs ((x ** (fx, gx)) :: dpairs) = let
+  (fxs, gxs) = unzipDPairs dpairs
+  in (fx :: fxs, gx :: gxs)
+
+||| Zip two dependent lists into a list of dependent pairs, according to a
+||| zipping function
+export
+zipToDPairsWith
+   : {xs : List t}
+  -> {0 f, g, h : t -> Type}
+  -> ({0 x : t} -> f x -> g x -> h x)
+  -> DList f xs
+  -> DList g xs
+  -> List (x : t ** h x)
+zipToDPairsWith func Nil Nil = Nil
+zipToDPairsWith {xs = x :: xs} func (fx :: fxs) (gx :: gxs)
+  = (x ** func fx gx) :: zipToDPairsWith func fxs gxs
+
+||| Zip two dependent lists into a list of dependent pairs
+||| (of pairs of elements dependent on a common parameter)
+export
+zipToDPairs
+   : {xs : List t}
+  -> DList f xs
+  -> DList g xs
+  -> List (x : t ** (f x, g x))
+zipToDPairs = zipToDPairsWith (,)
+
+||| `unzipWith` for dependent lists
+dunzipWith
+   : ({0 x : t} -> f x -> (g x, h x))
+  -> (DList f xs)
+  -> (DList g xs, DList h xs)
+dunzipWith func Nil = (Nil, Nil)
+dunzipWith func (fx :: fxs) = let
+  (gx, hx) = func fx
+  (gxs, hxs) = dunzipWith func fxs
+  in (gx :: gxs, hx :: hxs)
+
+||| `unzip` for dependent lists
+dunzip
+   : DList (\x => (f x, g x)) xs
+  -> (DList f xs, DList g xs)
+dunzip = dunzipWith id
+
+||| `zipWith` for dependent lists
+dzipWith
+   : ({0 x : t} -> f x -> g x -> h x)
+  -> DList f xs
+  -> DList g xs
+  -> DList h xs
+dzipWith func Nil Nil = Nil
+dzipWith func (fx :: fxs) (gx :: gxs) = (func fx gx) :: dzipWith func fxs gxs
+
+||| `zip` for dependent lists
+dzip
+   : DList f xs
+  -> DList g xs
+  -> DList (\x => (f x, g x)) xs
+dzip = dzipWith (,)
+
