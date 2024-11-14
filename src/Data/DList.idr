@@ -91,7 +91,25 @@ undmap : ({0 x : t} -> a x -> b) -> DList a xs -> List b
 undmap f Nil = Nil
 undmap f (ax :: axs) = f ax :: undmap f axs
 
--- TODO This is a special case of `replicate'`, rewrite it in terms of it
+||| Push a component of the element type constructor to the parameter list
+export
+pushToParams : DList (f . g) ts -> DList f (map g ts)
+-- Using `believe_me` to avoid pattern matching,
+-- taking advantage from the fact that `List` and `DList` are
+-- representationally equal
+--
+-- TODO: try implement `DList` as an alias for `HList`,
+-- then you could use `id` in place of `believe_me`
+pushToParams xs = believe_me xs
+
+||| Pull a component of the element type constructor from the parameter list
+export
+pullFromParams : DList f (map g ts) -> DList (f . g) ts
+-- Using `believe_me` to avoid pattern matching,
+-- taking advantage from the fact that `List` and `DList` are
+-- representationally equal
+pullFromParams xs = believe_me xs
+
 ||| Generate a dependent lists from its parameters
 export
 replicate : (xs : List t) -> ((x : t) -> f x) -> DList f xs
@@ -100,9 +118,12 @@ replicate (x :: xs) g = g x :: replicate xs g
 
 ||| Generate a dependent lists from its parameters
 export
-replicate' : (0 f : a -> b) -> (xs : List a) -> ((x : a) -> g (f x)) -> DList g (map f xs)
-replicate' f Nil g = Nil
-replicate' f (x :: xs) g = g x :: replicate' f xs g
+replicate'
+   : (0 f : a -> b)
+  -> (xs : List a)
+  -> ((x : a) -> g (f x))
+  -> DList g (map f xs)
+replicate' f xs gg = pushToParams (replicate xs gg)
 
 ||| The head of a dependent list
 export
