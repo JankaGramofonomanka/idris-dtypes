@@ -1,6 +1,7 @@
 ||| A module defining the dependent list and its interface
 module Data.DList
 
+import Data.Singleton
 import Data.DSum
 import Data.Some
 
@@ -26,73 +27,6 @@ export
 length : DList f xs -> Nat
 length Nil = Z
 length (x :: xs) = S (length xs)
-
--- TODO: rewrite in terms of `Applicative`
-||| Dependent version of `traverse`.
-|||
-||| Map each element of a dependent list to a computation, evaluate those
-||| computations and combine the results.
-export
-dtraverse : Monad f
-        => {0 t : Type}
-        -> {0 a, b : t -> Type}
-        -> {0 xs : List t}
-
-        -> ({0 x : t} -> a x -> f (b x))
-        -> DList a xs
-        -> f (DList b xs)
-
-dtraverse f Nil = pure Nil
-dtraverse f (ax :: axs) = do
-  bx <- f ax
-  bxs <- dtraverse f axs
-
-  pure (bx :: bxs)
-
--- TODO: rewrite in terms of `Applicative`
-||| Map each element of a list to a computation whose result type is dependent
-||| on the element, evaluate those computations and combine the results.
-export
-dtraverse' : Monad f
-        => {0 a : Type}
-        -> {0 g : a -> Type}
-
-        -> ((x : a) -> f (g x))
-        -> (xs : List a)
-        -> f (DList g xs)
-
-dtraverse' f Nil = pure Nil
-dtraverse' f (ax :: axs) = do
-  bx <- f ax
-  bxs <- dtraverse' f axs
-
-  pure (bx :: bxs)
-
-
-||| `foldr` version for dependent lists
-export
-dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
-dfoldr f acc Nil = acc
-dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
-
-||| `foldl` version for dependent lists
-export
-dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
-dfoldl f acc Nil = acc
-dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
-
-||| Apply a function to every element of a dependent list
-export
-dmap : ({0 x : t} -> a x -> b x) -> DList a xs -> DList b xs
-dmap f Nil = Nil
-dmap f (ax :: axs) = f ax :: dmap f axs
-
-||| Turn a dependent list into a non-dependent one by applying a
-||| dependency-removing function to its elements.
-export
-undmap : ({0 x : t} -> a x -> b) -> DList a xs -> List b
-undmap f Nil = Nil
-undmap f (ax :: axs) = f ax :: undmap f axs
 
 ||| Push a component of the element type constructor to the parameter list
 export
@@ -127,6 +61,71 @@ replicate'
   -> ((x : a) -> g (f x))
   -> DList g (map f xs)
 replicate' f xs gg = pushToParams (replicate xs gg)
+
+-- TODO: rewrite in terms of `Applicative`
+||| Dependent version of `traverse`.
+|||
+||| Map each element of a dependent list to a computation, evaluate those
+||| computations and combine the results.
+export
+dtraverse : Monad f
+        => {0 t : Type}
+        -> {0 a, b : t -> Type}
+        -> {0 xs : List t}
+
+        -> ({0 x : t} -> a x -> f (b x))
+        -> DList a xs
+        -> f (DList b xs)
+
+dtraverse f Nil = pure Nil
+dtraverse f (ax :: axs) = do
+  bx <- f ax
+  bxs <- dtraverse f axs
+
+  pure (bx :: bxs)
+
+-- TODO: rewrite in terms of `Applicative`
+||| Map each element of a list to a computation whose result type is dependent
+||| on the element, evaluate those computations and combine the results.
+export
+dtraverse' : Monad m
+        => {0 a : Type}
+        -> {0 g : a -> Type}
+
+        -> ((x : a) -> m (g x))
+        -> (xs : List a)
+        -> m (DList g xs)
+
+dtraverse' f xs = dtraverse (\(Val x) => f x) (replicate xs Val)
+-- This also works but I am uncomfortable with it because it creates a list of
+-- "computations" (`replicate xs f`)
+--dtraverse' f xs = dtraverse id (replicate xs f)
+
+
+||| `foldr` version for dependent lists
+export
+dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
+dfoldr f acc Nil = acc
+dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
+
+||| `foldl` version for dependent lists
+export
+dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
+dfoldl f acc Nil = acc
+dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
+
+||| Apply a function to every element of a dependent list
+export
+dmap : ({0 x : t} -> a x -> b x) -> DList a xs -> DList b xs
+dmap f Nil = Nil
+dmap f (ax :: axs) = f ax :: dmap f axs
+
+||| Turn a dependent list into a non-dependent one by applying a
+||| dependency-removing function to its elements.
+export
+undmap : ({0 x : t} -> a x -> b) -> DList a xs -> List b
+undmap f Nil = Nil
+undmap f (ax :: axs) = f ax :: undmap f axs
 
 ||| The head of a dependent list
 export
