@@ -16,6 +16,8 @@ data DList : (f : a -> Type) -> (ts : List a) -> Type where
   ||| Prepends a dependently typed element to a dependent list
   (::) : {0 x : a} -> f x -> DList f xs -> DList f (x :: xs)
 
+-- Basic utils ----------------------------------------------------------------
+
 ||| Concatenate two dependent lists
 public export
 (++) : DList f xs -> DList f ys -> DList f (xs ++ ys)
@@ -27,6 +29,24 @@ export
 length : DList f xs -> Nat
 length Nil = Z
 length (x :: xs) = S (length xs)
+
+||| The head of a dependent list
+export
+head : DList f (x :: xs) -> f x
+head (fx :: fxs) = fx
+
+||| The tail of a dependent list
+export
+tail : DList f (x :: xs) -> DList f xs
+tail (fx :: fxs) = fxs
+
+||| split a dependent list in two
+export
+split : {xs, xs' : List a} -> DList f (xs ++ xs') -> (DList f xs, DList f xs')
+split {xs = Nil} dl = (Nil, dl)
+split {xs = x :: xs''} (fx :: fxs''') = let (fxs'', fxs') = split (fxs''') in (fx :: fxs'', fxs')
+
+-- ? --------------------------------------------------------------------------
 
 ||| Push a component of the element type constructor to the parameter list
 export
@@ -46,6 +66,8 @@ pullFromParams : DList f (map g ts) -> DList (f . g) ts
 -- taking advantage from the fact that `List` and `DList` are
 -- representationally equal
 pullFromParams xs = believe_me xs
+
+-- Mapping --------------------------------------------------------------------
 
 ||| Apply a function to every element of a dependent list
 export
@@ -76,6 +98,8 @@ dmapList'
   -> (xs : List a)
   -> DList g (map f xs)
 dmapList' f gg xs = pushToParams (dmapList gg xs)
+
+-- Traversing -----------------------------------------------------------------
 
 -- TODO: rewrite in terms of `Applicative`
 ||| Dependent version of `traverse`.
@@ -118,6 +142,8 @@ dtraverseList f xs = dtraverse (\(Val x) => f x) (dmapList Val xs)
 -- "computations" (`replicate xs f`)
 --dtraverseList f xs = dtraverse id (replicate xs f)
 
+-- Folding --------------------------------------------------------------------
+
 ||| `foldr` version for dependent lists
 export
 dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
@@ -130,21 +156,7 @@ dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
 dfoldl f acc Nil = acc
 dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
 
-||| The head of a dependent list
-export
-head : DList f (x :: xs) -> f x
-head (fx :: fxs) = fx
-
-||| The tail of a dependent list
-export
-tail : DList f (x :: xs) -> DList f xs
-tail (fx :: fxs) = fxs
-
-||| split a dependent list in two
-export
-split : {xs, xs' : List a} -> DList f (xs ++ xs') -> (DList f xs, DList f xs')
-split {xs = Nil} dl = (Nil, dl)
-split {xs = x :: xs''} (fx :: fxs''') = let (fxs'', fxs') = split (fxs''') in (fx :: fxs'', fxs')
+-- Zipping --------------------------------------------------------------------
 
 ||| `unzipWith` for dependent lists
 export
