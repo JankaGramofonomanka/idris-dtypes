@@ -94,7 +94,7 @@ dcompare' fa fb = case dcompare fa fb @{impl} of
 ||| Use only when absolutely sure that `compare x y` returns `EQ` only when `x`
 ||| and `y` are identical.
 export
-implementation [unsafeViaEq] Ord a => POrd a where
+implementation [unsafeViaOrd] Ord a => POrd a where
   pcompare x y = case compare x y of
     LT => DLT
     GT => DGT
@@ -102,11 +102,11 @@ implementation [unsafeViaEq] Ord a => POrd a where
 
 export
 implementation POrd Bool where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
 export
 implementation POrd Nat where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
   -- A "kosher" definition:
   -- pcompare Z     Z     = DEQ
@@ -116,19 +116,19 @@ implementation POrd Nat where
 
 export
 implementation POrd Int where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
 export
 implementation POrd Integer where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
 export
 implementation POrd Char where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
 export
 implementation POrd String where
-  pcompare x y = pcompare x y @{unsafeViaEq}
+  pcompare x y = pcompare x y @{unsafeViaOrd}
 
 export
 implementation POrd a => POrd (List a) where
