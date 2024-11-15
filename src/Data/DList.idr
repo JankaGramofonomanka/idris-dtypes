@@ -47,73 +47,6 @@ pullFromParams : DList f (map g ts) -> DList (f . g) ts
 -- representationally equal
 pullFromParams xs = believe_me xs
 
-||| Generate a dependent lists from its parameters
-export
-replicate : (xs : List t) -> ((x : t) -> f x) -> DList f xs
-replicate Nil g = Nil
-replicate (x :: xs) g = g x :: replicate xs g
-
-||| Generate a dependent lists from its parameters
-export
-replicate'
-   : (0 f : a -> b)
-  -> (xs : List a)
-  -> ((x : a) -> g (f x))
-  -> DList g (map f xs)
-replicate' f xs gg = pushToParams (replicate xs gg)
-
--- TODO: rewrite in terms of `Applicative`
-||| Dependent version of `traverse`.
-|||
-||| Map each element of a dependent list to a computation, evaluate those
-||| computations and combine the results.
-export
-dtraverse : Monad f
-        => {0 t : Type}
-        -> {0 a, b : t -> Type}
-        -> {0 xs : List t}
-
-        -> ({0 x : t} -> a x -> f (b x))
-        -> DList a xs
-        -> f (DList b xs)
-
-dtraverse f Nil = pure Nil
-dtraverse f (ax :: axs) = do
-  bx <- f ax
-  bxs <- dtraverse f axs
-
-  pure (bx :: bxs)
-
--- TODO: rewrite in terms of `Applicative`
-||| Map each element of a list to a computation whose result type is dependent
-||| on the element, evaluate those computations and combine the results.
-export
-dtraverse' : Monad m
-        => {0 a : Type}
-        -> {0 g : a -> Type}
-
-        -> ((x : a) -> m (g x))
-        -> (xs : List a)
-        -> m (DList g xs)
-
-dtraverse' f xs = dtraverse (\(Val x) => f x) (replicate xs Val)
--- This also works but I am uncomfortable with it because it creates a list of
--- "computations" (`replicate xs f`)
---dtraverse' f xs = dtraverse id (replicate xs f)
-
-
-||| `foldr` version for dependent lists
-export
-dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
-dfoldr f acc Nil = acc
-dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
-
-||| `foldl` version for dependent lists
-export
-dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
-dfoldl f acc Nil = acc
-dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
-
 ||| Apply a function to every element of a dependent list
 export
 dmap : ({0 x : t} -> a x -> b x) -> DList a xs -> DList b xs
@@ -126,6 +59,76 @@ export
 undmap : ({0 x : t} -> a x -> b) -> DList a xs -> List b
 undmap f Nil = Nil
 undmap f (ax :: axs) = f ax :: undmap f axs
+
+||| Apply a dependent function to every element of a list,
+||| thus, generate a dependent list
+export
+dmapList : ((x : t) -> f x) -> (xs : List t) -> DList f xs
+dmapList g Nil = Nil
+dmapList g (x :: xs) = g x :: dmapList g xs
+
+||| A more general version of `dmapList`, where the resulting list is dependent
+||| on a list of parameters which is itself a mapping on the original list
+export
+dmapList'
+   : (0 f : a -> b)
+  -> ((x : a) -> g (f x))
+  -> (xs : List a)
+  -> DList g (map f xs)
+dmapList' f gg xs = pushToParams (dmapList gg xs)
+
+-- TODO: rewrite in terms of `Applicative`
+||| Dependent version of `traverse`.
+|||
+||| Map each element of a dependent list to a computation, evaluate those
+||| computations and combine the results.
+export
+dtraverse
+   : Monad f
+  => {0 t : Type}
+  -> {0 a, b : t -> Type}
+  -> {0 xs : List t}
+
+  -> ({0 x : t} -> a x -> f (b x))
+  -> DList a xs
+  -> f (DList b xs)
+
+dtraverse f Nil = pure Nil
+dtraverse f (ax :: axs) = do
+  bx <- f ax
+  bxs <- dtraverse f axs
+
+  pure (bx :: bxs)
+
+-- TODO: rewrite in terms of `Applicative`
+||| Map each element of a list to a computation whose result type is dependent
+||| on the element, evaluate those computations and combine the results.
+export
+dtraverseList
+   : Monad m
+  => {0 a : Type}
+  -> {0 g : a -> Type}
+
+  -> ((x : a) -> m (g x))
+  -> (xs : List a)
+  -> m (DList g xs)
+
+dtraverseList f xs = dtraverse (\(Val x) => f x) (dmapList Val xs)
+-- This also works but I am uncomfortable with it because it creates a list of
+-- "computations" (`replicate xs f`)
+--dtraverseList f xs = dtraverse id (replicate xs f)
+
+||| `foldr` version for dependent lists
+export
+dfoldr : ({0 x : t} -> el x -> acc -> acc) -> acc -> DList el ts -> acc
+dfoldr f acc Nil = acc
+dfoldr f acc (x :: xs) = f x $ dfoldr f acc xs
+
+||| `foldl` version for dependent lists
+export
+dfoldl : ({0 x : t} -> acc -> el x -> acc) -> acc -> DList el ts -> acc
+dfoldl f acc Nil = acc
+dfoldl f acc (x :: xs) = dfoldl f (f acc x) xs
 
 ||| The head of a dependent list
 export
