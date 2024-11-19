@@ -2,7 +2,7 @@ package dtypes
 version = 0.1.0
 authors = "Jan Serwatka"
 -- maintainers =
--- license =
+license = "BSD-3 Clause"
 brief = "dependent variants of common idris/haskell types and interfaces"
 -- readme =
 -- homepage =
