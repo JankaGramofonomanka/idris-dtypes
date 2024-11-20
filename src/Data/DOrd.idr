@@ -38,7 +38,7 @@ ordcong
 ordcong f = ordcong' {f}
 
 ||| ``ordL `precedes` ordR`` means that, in the resulting ordering, `ordL`
-||| precedes' `ordR`, that is `ordR` is considered only if `ordL` is `DEQ`
+||| precedes' `ordR`, that is, `ordR` is considered only if `ordL` is `DEQ`
 export
 precedes
    : {0 a, b   : t}

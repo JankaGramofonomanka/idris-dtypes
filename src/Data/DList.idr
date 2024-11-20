@@ -195,7 +195,8 @@ dzip
   -> DList (\x => (f x, g x)) xs
 dzip = dzipWith (,)
 
-||| Unzip a list with a function that returns a dependent pair
+||| Unzip a list to a dependent list and its parameter list, using a function
+||| that returns a dependent pair
 export
 unzipParamsWith
    : {0 f : b -> Type}

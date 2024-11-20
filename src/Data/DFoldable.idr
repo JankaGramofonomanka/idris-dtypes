@@ -29,6 +29,7 @@ interface DFoldable (0 f : (t -> Type) -> Type) where
   --  f' : {0 x : t} -> el x -> acc -> acc
   --  f' el acc = f acc el
 
+-- separated from the interface definition due to weird errors
 ||| Default implementation of `dfoldl`
 ||| Separated from the interface definition due to what seems to be a compiler
 ||| bug.
