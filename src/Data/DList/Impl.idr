@@ -1,3 +1,7 @@
+||| Implementations of `DFunctor` and `DFoldable` for `DList`
+|||
+||| Separated from the `Data.DList` module, because the implementations are
+||| actually for `flip DList` which makes their usefullness questionable.
 module Data.DList.Impl
 
 import public Data.DFoldable
